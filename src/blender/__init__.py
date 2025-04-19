@@ -10,6 +10,7 @@ bl_info = {
 
 import bpy
 import os
+import msvcrt
 import subprocess
 import time
 import mmap
@@ -31,23 +32,22 @@ process = None
 isConnected = False
 
 def handshake():
-    print(f"[Carl3D] Attempting handshake with C3D_HELPER.exe...")
     bufferName = "Local\\C3DBUFFER"
     bufferSize = 1024
+    print(f"[Carl3D] Attempting handshake with C3D_HELPER.exe...")
     for attempt in range(10):
         print(f"[Carl3D] Polling Attempt {attempt}/10...")
-        h_map = OpenFileMapping(FILE_MAP_READ, False, bufferName)
-        if not h_map:
+        try:
+            mem = mmap.mmap(-1, bufferSize, tagname=bufferName, access=mmap.ACCESS_READ)
+        except OSError:
             print(f"[Carl3D] No mapping yet.  Retrying...")
             time.sleep(0.1)
             continue
 
-        mem = mmap.mmap(h_map, bufferSize, access=mmap.ACCESS_READ)
         raw = mem.read(bufferSize)
+        mem.close()
         message = raw.split(b"\x00", 1)[0].decode(errors="ignore")
         print(f"[Carl3D] Handshake returned: {message!r}")
-        mem.close()
-        CloseHandle(h_map)
         return True
     
     print(f"[Carl3D] Handshake failed after 10 attempts.")
