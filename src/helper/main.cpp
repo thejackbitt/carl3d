@@ -5,7 +5,7 @@
 #include <cstring>
 
 int main() {
-    const char* bufferName = "Local\\C3DBUFFER";
+    const char* bufferName = "Local\\C3DINPUT";
     const size_t bufferSize = 1024;
 
     HANDLE hMap = CreateFileMappingA(

@@ -20,6 +20,9 @@ from . import ply, ui, writer
 
 FILE_MAP_READ = 0x0004
 
+bN = ""
+bS = 0
+
 kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
 OpenFileMapping = kernel32.OpenFileMappingW
 OpenFileMapping.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.LPCWSTR)
@@ -29,10 +32,9 @@ CloseHandle = kernel32.CloseHandle
 path = os.path.dirname(__file__)
 pathHelper = os.path.join(path, "C3D_HELPER.exe")
 process = None
-isConnected = False
 
 def handshake():
-    bufferName = "Local\\C3DBUFFER"
+    bufferName = "Local\\C3DINPUT"
     bufferSize = 1024
     print(f"[Carl3D] Attempting handshake with C3D_HELPER.exe...")
     for attempt in range(10):
@@ -48,6 +50,11 @@ def handshake():
         mem.close()
         message = raw.split(b"\x00", 1)[0].decode(errors="ignore")
         print(f"[Carl3D] Handshake returned: {message!r}")
+        # I think it's really flipping stupid that Python makes you specify that a global variable is a global variable
+        global bN
+        bN = bufferName
+        global bS 
+        bS = bufferSize
         return True
     
     print(f"[Carl3D] Handshake failed after 10 attempts.")
@@ -67,12 +74,13 @@ def launchHelper():
     handshake()
 
 def register():
+    global bN
+    global bS
     launchHelper()
     ui.register()
     ply.register()
-    writer.register(bN="Local\\C3DBUFFER",
-                    bS=1024)
-    # REFACTOR LATER TO REMOVE REDUNDANCY
+    writer.register(bN=bN,
+                    bS=bS)
     
 def unregister():
     ui.unregister()
