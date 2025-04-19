@@ -16,7 +16,7 @@ import time
 import mmap
 import ctypes
 from ctypes import wintypes, byref
-from . import ply, ui
+from . import ply, ui, writer
 
 FILE_MAP_READ = 0x0004
 
@@ -70,10 +70,14 @@ def register():
     launchHelper()
     ui.register()
     ply.register()
+    writer.register(bN="Local\\C3DBUFFER",
+                    bS=1024)
+    # REFACTOR LATER TO REMOVE REDUNDANCY
     
 def unregister():
     ui.unregister()
     ply.unregister()
+    writer.unregister()
 
 if __name__ == "__main__":
     register()

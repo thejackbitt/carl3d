@@ -1,11 +1,14 @@
 #include <windows.h>
 #include <iostream>
+#include <thread>
+#include <chrono>
+#include <cstring>
 
 int main() {
     const char* bufferName = "Local\\C3DBUFFER";
     const size_t bufferSize = 1024;
 
-    HANDLE hFile = CreateFileMappingA(
+    HANDLE hMap = CreateFileMappingA(
         INVALID_HANDLE_VALUE,
         nullptr,
         PAGE_READWRITE,
@@ -14,33 +17,43 @@ int main() {
         bufferName
     );
 
-    if (hFile == nullptr) {
-        std::cerr << "[Helper] Could not create buffer " << GetLastError() << '\n' << std::endl;
+    if(!hMap) {
+        std::cerr << "[Helper] CreateFileMapping failed: " << GetLastError() << '\n' << std::endl;
         return 1;
     }
 
-    LPVOID hView = MapViewOfFile(
-        hFile,
-        FILE_MAP_ALL_ACCESS,
-        0,
-        0,
-        bufferSize
+    char* hView = static_cast<char*>(
+        MapViewOfFile(
+            hMap,
+            FILE_MAP_ALL_ACCESS,
+            0,
+            0,
+            bufferSize
+        )
     );
 
-    if (hView == nullptr) {
-        std::cerr << "[Helper] Could not create view of file " << GetLastError() << '\n' << std::endl;
-        CloseHandle(hFile);
+    if (!hView) {
+        std::cerr << "[Helper] MapViewOfFile failed: " << GetLastError() << '\n' << std::endl;
+        CloseHandle(hMap);
         return 1;
     }
 
-    const char* message = "Hello world!";
-    CopyMemory(hView, message, strlen(message) + 1);
+    std::string last;
+    while (true) {
+        char buf[bufferSize];
+        memcpy(buf, hView, bufferSize);
+        buf[bufferSize-1] = '\0';
 
-    std::cout << "[Helper] Shared memory created.  Press enter to quit.\n" << std::endl;
-    std::cin.get();
+        if(std::strlen(buf) > 0 && buf != last) {
+            std::cout << "[Helper] JSON: " << '\n' << buf << '\n' << std::endl;
+            last = buf; 
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
     
     UnmapViewOfFile(hView);
-    CloseHandle(hFile);
+    CloseHandle(hMap);
 
     return 0;
 }

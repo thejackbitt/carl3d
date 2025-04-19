@@ -3,8 +3,8 @@ import json
 import mmap
 
 # Shared memory settings
-bufferName = ""
-bufferSize = ""
+bufferName = None
+bufferSize = 0
 
 data_state = {"view": None, "proj": None}
 
@@ -90,8 +90,9 @@ def render_handler(scene):
         write_buffer(payload)
 
 def register(bN, bS):
+    global bufferName, bufferSize
     bufferName = bN
-    bufferSize = bS
+    bufferSize = int(bS)
     bpy.app.timers.register(capture_view)
     bpy.app.handlers.render_pre.append(render_handler)
 
