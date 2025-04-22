@@ -1,7 +1,6 @@
 import bpy
 
 class Carl3D_UI(bpy.types.Panel):
-    """Creates a Sidebar Panel"""
     bl_label = "Carl3D"
     bl_idname = "CARL3D_PT_UI"
     bl_space_type = 'VIEW_3D'

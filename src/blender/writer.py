@@ -8,25 +8,19 @@ bufferSize = 0
 data_state = {"view": None, "proj": None}
 
 def write_buffer(payload: dict):
-    """
-    Write JSON payload into the shared memory buffer.
-    """
-    try:
-        mem = mmap.mmap(-1, bufferSize, tagname=bufferName, access=mmap.ACCESS_WRITE)
-        data_bytes = json.dumps(payload).encode('utf-8')
-        mem.seek(0)
-        mem.write(data_bytes[:bufferSize-1])
-        mem.write(b'\x00')
-        mem.close()
-    except Exception as e:
-        print(f"[Carl3D] Failed to write to buffer: {e}")
+    if bpy.context.scene.get("gsplat_enable_overlay", True):
+        try:
+            mem = mmap.mmap(-1, bufferSize, tagname=bufferName, access=mmap.ACCESS_WRITE)
+            data_bytes = json.dumps(payload).encode('utf-8')
+            mem.seek(0)
+            mem.write(data_bytes[:bufferSize-1])
+            mem.write(b'\x00')
+            mem.close()
+        except Exception as e:
+            print(f"[Carl3D] Failed to write to buffer: {e}")
 
 
 def capture_view():
-    """
-    Timer callback: checks all 3D viewports for view changes, writes on change.
-    Returns interval (in seconds) for next run.
-    """
     global data_state
     for window in bpy.context.window_manager.windows:
         for area in window.screen.areas:
@@ -54,9 +48,6 @@ def capture_view():
     return 0.1
 
 def render_handler(scene):
-    """
-    Pre-render handler: writes active camera's transform & projection.
-    """
     cam = scene.camera
     if cam:
         view_mat = cam.matrix_world.inverted()

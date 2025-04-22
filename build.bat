@@ -1,7 +1,7 @@
 @echo off
 echo Building Carl3D executable...
 
-g++ src/helper/main.cpp -o src/blender/C3D_HELPER.EXE
+g++ ^ -I "src\helper" ^ -std=c++17 ^ -O2 ^ src\helper\main.cpp ^ src\helper\reader.cpp ^ src\helper\writer.cpp ^ -o "src\blender\C3D_HELPER.EXE"
 
 if errorlevel 1 (
     echo Epic fail.  Something went wrong...
